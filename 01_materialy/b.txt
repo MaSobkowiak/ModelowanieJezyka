@@ -1,0 +1,69 @@
+# tekst pochodzi z https://pl.wikipedia.org/wiki/UTF-8
+UTF-8 (ang. 8-bit Unicode Transformation Format) – system kodowania Unicode, wykorzystujący od 1 do 4 bajtów do zakodowania pojedynczego znaku, w pełni kompatybilny z ASCII. Jest najczęściej wykorzystywany do przechowywania napisów w plikach i komunikacji sieciowej.
+
+
+Spis treści
+1	Zalety i wady
+1.1	Zalety
+1.2	Wady
+2	Sposób kodowania
+3	Przykład
+4	Zobacz też
+5	Linki zewnętrzne
+Zalety i wady
+Zalety
+Każdy tekst w ASCII jest tekstem w UTF-8.
+Żaden znak spoza ASCII nie zawiera bajtu z ASCII.
+Zachowuje porządek sortowania UCS-4.
+Typowy tekst ISO-Latin-X rozrasta się w bardzo niewielkim stopniu po przekonwertowaniu do UTF-8.
+Nie zawiera bajtów 0xFF i 0xFE, więc łatwo można go odróżnić od tekstu UTF-16.
+Znaki o kodzie różnym od 0 nie zawierają bajtu 0, co pozwala stosować UTF-8 w ciągach zakończonych zerem.
+O każdym bajcie wiadomo, czy jest początkiem znaku, czy też leży w jego środku, co nie jest dostępne np. w kodowaniu EUC.
+Nie ma problemów z little endian vs big endian.
+Jest domyślnym kodowaniem w XML (również w jego aplikacjach: XHTML, SVG, XSL, CML, MathML).
+Wady
+Znaki CJK zajmują po 3 bajty zamiast 2 w kodowaniach narodowych.
+Znaki alfabetów niełacińskich zajmują po 2 bajty zamiast jednego w kodowaniach narodowych.
+UTF-8 nie używa przesunięć zasięgów, co stanowi dodatkowe utrudnienie dla implementacji UTF-8 (szczegóły poniżej)
+Sposób kodowania
+Mapowanie znaków Unicode na ciągi bajtów:
+
+0x00 do 0x7F            – bity 0xxxxxxx, gdzie kolejne „x” to bity – licząc od najwyższego
+0x80 do 0x7FF           – bity 110xxxxx 10xxxxxx
+0x800 do 0xFFFF         – bity 1110xxxx 10xxxxxx 10xxxxxx
+0x10000 do 0x1FFFFF     – bity 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+0x200000 do 0x3FFFFFF   – bity 111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
+0x4000000 do 0x7FFFFFFF – bity 1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
+Znaki z przedziału ASCII (0 do 127) kodowane są jako jeden bajt, czyli m.in. litery alfabetu łacińskiego. Polskie znaki diakrytyczne kodowane już są jako dwa bajty. W listopadzie 2003 roku kodowanie UTF-8 zostało ograniczone zgodnie z RFC 3629 ↓ do 0x10FFFF pozycji, w celu zapewnienia zgodności z ograniczeniami systemu UTF-16. Rezultatem było usunięcie wszystkich sekwencji złożonych z 5 i 6 bajtów oraz około połowy sekwencji 4-bajtowych. W ten sposób pozostało dokładnie 17 • 65536 - 2048, czyli 1 112 064 pozycji znaków możliwych do zakodowania w UTF-8. Pomniejszenie liczby kodów o 2048 wynika z zarezerwowania kodów z zakresu od U+D800 do U+DFFF dla kodowania UTF-16.
+
+Teoretycznie w UTF-8 ten sam znak można zapisać na kilka sposobów. Przykładowo znak ASCII / (ukośnik) można zapisać jako:
+
+00101111
+11000000 10101111
+11100000 10000000 10101111itd.
+Stanowi to zagrożenie bezpieczeństwa m.in. dla serwerów, które sprawdzają obecność znaku / w ścieżkach. Z tego powodu standard UTF-8 przewiduje, że poprawny jest wyłącznie najkrótszy możliwy sposób zapisu, a każdy program musi odrzucać znaki zapisane dłuższymi sekwencjami niż minimalna.
+
+Problemu tego można byłoby uniknąć, przy okazji skracając nieznacznie wielkość danych, jeśli wykorzystano by zasadę przesunięć typu:
+
+sekwencje 1-bajtowe kodują 0x80 (128) różnych znaków – od 0x00 do 0x7F
+sekwencje 2-bajtowe kodują 0x800 (2048) różnych znaków – od 0x80 do 0x87F
+sekwencje 3-bajtowe kodują 0x10000 (65536) różnych znaków – od 0x880 do 0x1087F
+itd.
+Przykład
+Kodowanie na podstawie znaku euro €:
+
+Znak € w Unicode ma oznaczenie U+20AC.
+Zgodnie z informacjami w poprzednim podrozdziale taka wartość jest możliwa do zakodowania na 3 bajtach.
+Liczba szesnastkowa 20AC to binarnie 0010 0000 1010 1100 po uzupełnieniu wiodącymi zerami do 16 bitów, ponieważ tyle bitów trzeba zakodować na 3 bajtach w UTF-8.
+Kodowanie na trzech bajtach wymaga użycia w pierwszym bajcie trzech wiodących bitów ustawionych na 1, a czwartego na 0 (1110…).
+Pozostałe bity pierwszego bajtu pochodzą z najstarszych czterech bitów kodowanej wartości w Unicode, co daje (1110 0010), a reszta bitów dzielona jest na dwa bloki po 6 bitów każdy (…0000 1010 1100).
+Do tych bloków dodawane są wiodące bity 10, by tworzyły następujące 8-bitowe wartości 1000 0010 i 1010 1100).
+W ten sposób rezultatem są trzy bajty w postaci 1110 0010 1000 0010 1010 1100, co w systemie szesnastkowych przyjmuje postać E2 82 AC.
+Poniższa tabela pozwala zrozumieć sposób kodowana różnej długości numerów kodowych Unicode w UTF-8.
+
+Unicode	Unicode binarnie	UTF-8 binarnie
+ 1. bajt   2. bajt   3. bajt   4. bajt	UTF-8 szesnastkowo
+$	U+0024	0100100	00100100	24
+¢	U+00A2	000 10100010	11000010 10100010	C2 A2
+€	U+20AC	00100000 10101100	11100010 10000010 10101100	E2 82 AC
+𐍈	U+10348	00001 00000011 01001000	11110000 10010000 10001101 10001000	F0 90 8D 88
